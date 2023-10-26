@@ -6,8 +6,8 @@
 
 # Get the file names of the current directory. Sort them by type.
 update_names() {
-    PUBLIC_DIRS="$(find . -maxdepth 1 -type d | sed 's/^\.\///' | grep -v '^\.')"
-    HIDDEN_DIRS="$(find . -maxdepth 1 -type d | sed 's/^\.\///' | grep '^\.' | grep -v '^.$')"
+    PUBLIC_DIRS="$(find . -maxdepth 1 -type d,l | sed 's/^\.\///' | grep -v '^\.')"
+    HIDDEN_DIRS="$(find . -maxdepth 1 -type d,l | sed 's/^\.\///' | grep '^\.' | grep -v '^.$')"
     PUBLIC_FILES="$(find . -maxdepth 1 -type f | sed 's/^\.\///' | grep -v '^\.')"
     HIDDEN_FILES="$(find . -maxdepth 1 -type f | sed 's/^\.\///' | grep '^\.')"
     
@@ -92,7 +92,7 @@ done
 
 # Clear formatting, move cursor to bottom of the terminal.
 N="$(echo "$SORTED_FNAMES" | wc -l)"
-N=$((N+3))
-printf "\033[$N;0H \033[0m \033[0J"
+N=$((N+1))
+printf "\033[$N;0H \033[0m \033[0J \033[$N;0H"
 # Show user input:
 stty echo
