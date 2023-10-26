@@ -1,8 +1,8 @@
 #!/bin/dash
-#▶ Simple file system navigator/viewer. See License file for liscense info.
+#▶ Simple file system navigator/viewer. See License file for copyright and license info.
 #▶ Run: source nav
 #▶ Controls: hjkl to move, q to quit
-#▶ Install: Add an alias for this in your ~/.bash_aliases file: f='source PATH_TO_THIS_SCRIPT'
+#▶ Install: Add an alias for this to your ~/.bash_aliases file: f='source PATH_TO_THIS_SCRIPT'
 
 # Get the file names of the current directory. Sort them by type.
 update_names() {
