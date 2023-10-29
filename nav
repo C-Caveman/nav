@@ -5,11 +5,11 @@
 #▶ Install: Add an alias for this to your ~/.bash_aliases file: f='source PATH_TO_THIS_SCRIPT'
 
 # Get the file names of the current directory. Sort them by type.
-update_names() {
-    PUBLIC_DIRS="$(find . -maxdepth 1 -type d,l | sed 's/^\.\///' | grep -v '^\.')"
-    HIDDEN_DIRS="$(find . -maxdepth 1 -type d,l | sed 's/^\.\///' | grep '^\.' | grep -v '^.$')"
-    PUBLIC_FILES="$(find . -maxdepth 1 -type f | sed 's/^\.\///' | grep -v '^\.')"
-    HIDDEN_FILES="$(find . -maxdepth 1 -type f | sed 's/^\.\///' | grep '^\.')"
+update_names() { # -L allows find to check what type of file a symbolic link goes to.
+    PUBLIC_DIRS="$(find -L . -maxdepth 1 -type d | sed 's/^\.\///' | grep -v '^\.' | sort)"
+    HIDDEN_DIRS="$(find -L . -maxdepth 1 -type d | sed 's/^\.\///' | grep '^\.' | grep -v '^.$' | sort)"
+    PUBLIC_FILES="$(find -L . -maxdepth 1 -type f | sed 's/^\.\///' | grep -v '^\.' | sort)"
+    HIDDEN_FILES="$(find -L . -maxdepth 1 -type f | sed 's/^\.\///' | grep '^\.' | sort)"
     
     # Searchable list:
     SORTED_FNAMES=""
@@ -36,7 +36,6 @@ $HIDDEN_FILES"
 \033[32m$HIDDEN_FILES\033[0m"
     # Remove empty lines: (doesn't remove the first empty line!?!?!?!?)
     FORMATTED_FNAMES="$(sed 's/^\s*$//' <<< "$FORMATTED_FNAMES")"
-    #FORMATTED_FNAMES="${FORMATTED_FNAMES#\n}"
 }
 
 REFRESH=1
@@ -56,7 +55,6 @@ while (true) do
     (( CURSOR_POS < 2 )) && CURSOR_POS=2 && SCROLL_HEIGHT=$((SCROLL_HEIGHT-1)) && REFRESH=1 # Top.
     (( CURSOR_POS > H )) && CURSOR_POS=$H && SCROLL_HEIGHT=$((SCROLL_HEIGHT+1)) && REFRESH=1 # Bottom.
     (( CURSOR_POS > ((NUM_FILES-1)) )) && CURSOR_POS="$((NUM_FILES-1))" # Last file.
-    #(( SCROLL_HEIGHT < 1 )) && SCROLL_HEIGHT=1
     (( SCROLL_HEIGHT > ((NUM_FILES-H)) )) && SCROLL_HEIGHT="$((NUM_FILES-H))"
     (( SCROLL_HEIGHT < 1 )) && SCROLL_HEIGHT=1
     # Draw the diplay:
@@ -77,9 +75,9 @@ while (true) do
     # Goto ..:
     [ "$INPUT" = "h" ] &&
         PREV_FNAME="${PWD##*/}" && # Get the name of the current dir.
-        cd ".." && 
-        REFRESH=1 && 
-        update_names && 
+        cd ".." &&
+        REFRESH=1 &&
+        update_names &&
         CURSOR_POS="$(grep -n "^$PREV_FNAME\$" <<< "$SORTED_FNAMES" | cut -d ':' -f 1)" &&
         CURSOR_POS="$((CURSOR_POS))" # Set cursor on dir we just came from.
     # Goto dir:
