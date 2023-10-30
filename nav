@@ -26,14 +26,18 @@ $HIDDEN_FILES"
     
     # Printable list: (with colors)
     FORMATTED_FNAMES=""
-    [ "$PUBLIC_DIRS" != "" ] && FORMATTED_FNAMES+="
-\033[93m$PUBLIC_DIRS\033[0m"
-    [ "$HIDDEN_DIRS" != "" ] && FORMATTED_FNAMES+="
-\033[91m$HIDDEN_DIRS\033[0m"
-    [ "$PUBLIC_FILES" != "" ] && FORMATTED_FNAMES+="
-\033[00m$PUBLIC_FILES\033[0m"
-    [ "$HIDDEN_FILES" != "" ] && FORMATTED_FNAMES+="
-\033[32m$HIDDEN_FILES\033[0m"
+    [ "$PUBLIC_DIRS" != "" ] && FORMATTED_FNAMES+="$(echo "$PUBLIC_DIRS" | sed 's/^/\\033[93m/; s/$/\\033[0m/')
+"
+#\033[93m$PUBLIC_DIRS\033[0m"
+    [ "$HIDDEN_DIRS" != "" ] && FORMATTED_FNAMES+="$(echo "$HIDDEN_DIRS" | sed 's/^/\\033[91m/; s/$/\\033[0m/')
+"
+#\033[91m$HIDDEN_DIRS\033[0m"
+    [ "$PUBLIC_FILES" != "" ] && FORMATTED_FNAMES+="$(echo "$PUBLIC_FILES" | sed 's/^/\\033[00m/; s/$/\\033[0m/')
+"
+#\033[00m$PUBLIC_FILES\033[0m"
+    [ "$HIDDEN_FILES" != "" ] && FORMATTED_FNAMES+="$(echo "$HIDDEN_FILES" | sed 's/^/\\033[32m/; s/$/\\033[0m/')
+"
+#\033[32m$HIDDEN_FILES\033[0m"
     # Remove empty lines: (doesn't remove the first empty line!?!?!?!?)
     FORMATTED_FNAMES="$(sed 's/^\s*$//' <<< "$FORMATTED_FNAMES")"
 }
@@ -54,16 +58,16 @@ while (true) do
     # Keep the cursor in bounds:
     (( CURSOR_POS < 2 )) && CURSOR_POS=2 && SCROLL_HEIGHT=$((SCROLL_HEIGHT-1)) && REFRESH=1 # Top.
     (( CURSOR_POS > H )) && CURSOR_POS=$H && SCROLL_HEIGHT=$((SCROLL_HEIGHT+1)) && REFRESH=1 # Bottom.
-    (( CURSOR_POS > ((NUM_FILES-1)) )) && CURSOR_POS="$((NUM_FILES-1))" # Last file.
+    (( CURSOR_POS > ((NUM_FILES)) )) && CURSOR_POS="$((NUM_FILES))" # Last file.
     (( SCROLL_HEIGHT > ((NUM_FILES-H)) )) && SCROLL_HEIGHT="$((NUM_FILES-H))"
     (( SCROLL_HEIGHT < 1 )) && SCROLL_HEIGHT=1
     # Draw the diplay:
     [ "$REFRESH" = "1" ] &&
         clear &&
         # Print the current directory: (formatted to be yellow)
-        printf "\033[93m$PWD\033[0m" &&
+        printf "\033[93m$PWD\033[0m\n" &&
         # Print the file names: (with leading space)
-        printf "$(sed 's/^/ /' <<< "$FORMATTED_FNAMES" | sed -n ' '"$SCROLL_HEIGHT"','"$((H+SCROLL_HEIGHT-1))"'p')"
+        printf "$(sed 's/^/ /' <<< "$FORMATTED_FNAMES" | sed -n ' '"$SCROLL_HEIGHT"','"$((H+SCROLL_HEIGHT-2))"'p')"
     # Move the cursor:
     printf "\033[$CURSOR_POS;0H"
     # Only set to 1 when the display needs to change:
