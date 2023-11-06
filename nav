@@ -7,18 +7,10 @@
 # Sort the filenames and group them using html-like tags:
 update_names() {
 NAMES="\
-<@public dirs@>
-$(find -L . -maxdepth 1 -type d | sed 's/^\.\///' | grep -v '^\.' | sort)
-<@end@>
-<@private dirs@>
-$(find -L . -maxdepth 1 -type d | sed 's/^\.\///' | grep '^\.' | grep -v '^.$' | sort)
-<@end@>
-<@public files@>
-$(find -L . -maxdepth 1 -type f | sed 's/^\.\///' | grep -v '^\.' | sort)
-<@end@>
-<@private files@>
-$(find -L . -maxdepth 1 -type f | sed 's/^\.\///' | grep '^\.' | sort)
-<@end@>
+<@public dirs@>\n$(find -L . -maxdepth 1 -type d | sed 's/^\.\///' | grep -v '^\.' | sort)\n<@end@>
+<@private dirs@>\n$(find -L . -maxdepth 1 -type d | sed 's/^\.\///' | grep '^\.' | grep -v '^.$' | sort)\n<@end@>
+<@public files@>\n$(find -L . -maxdepth 1 -type f | sed 's/^\.\///' | grep -v '^\.' | sort)\n<@end@>
+<@private files@>\n$(find -L . -maxdepth 1 -type f | sed 's/^\.\///' | grep '^\.' | sort)\n<@end@>
 "
 FORMATTED_NAMES="$(
 printf "$NAMES" | # Set color-coding for each tagged group of names:
@@ -63,10 +55,16 @@ while (true) do
         printf "$(sed 's/^/ /' <<< "$FORMATTED_NAMES" | sed -n ' '"$SCROLL_HEIGHT"','"$((H+SCROLL_HEIGHT-2))"'p')"
     # Move the cursor:
     printf "\033[$CURSOR_POS;0H"
-    # Only set to 1 when the display needs to change:
+    # Don't refresh screen unless needed:
     REFRESH=0
-    # Get user input: (don't wait for enter to be pressed)
-    read -ern 1 INPUT
+    # Get user input:
+    read -rsn 1 INPUT
+    # Convert arrow key escape codes into hjkl form:
+    [ "$INPUT" = "$(printf "\033")" ] && read -rsn 1 INPUT && [ "$INPUT" = "[" ] && read -rsn 1 INPUT
+    [ "$INPUT" = "D" ] && INPUT="h"
+    [ "$INPUT" = "C" ] && INPUT="l"
+    [ "$INPUT" = "A" ] && INPUT="k"
+    [ "$INPUT" = "B" ] && INPUT="j"
     # Quit:
     [ "$INPUT" = "q" ] && break
     # Goto ..:
@@ -78,7 +76,10 @@ while (true) do
         CURSOR_POS="$(grep -n "^$PREV_FNAME\$" <<< "$SORTED_NAMES" | cut -d ':' -f 1)" &&
         CURSOR_POS="$((CURSOR_POS+1))" # Set cursor on dir we just came from.
     # Goto dir:
-    [ "$INPUT" = "l" ] && cd "$(echo "$SORTED_NAMES" | tr '\n' '\t' | cut -f "$((CURSOR_POS+SCROLL_HEIGHT-2))")" && REFRESH=1 && update_names
+    [ "$INPUT" = "l" ] &&
+        cd "$(echo "$SORTED_NAMES" | tr '\n' '\t' | cut -f "$((CURSOR_POS+SCROLL_HEIGHT-2))")" &&
+        REFRESH=1 &&
+        update_names
     # Up:
     [ "$INPUT" = "k" ] && CURSOR_POS=$((CURSOR_POS-1))
     # Down:
