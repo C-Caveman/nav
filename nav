@@ -89,6 +89,7 @@ done
 # Clear formatting, move cursor to bottom of the terminal.
 N="$(echo "$SORTED_NAMES" | wc -l)"
 N=$((N+1))
+((N < H)) && N=$((N+1))
 printf "\033[$N;0H \033[0m \033[0J \033[$N;0H"
 # Show user input:
 stty echo
