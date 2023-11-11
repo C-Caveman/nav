@@ -44,7 +44,7 @@ while (true) do
     (( CURSOR_POS < 2 )) && CURSOR_POS=2 && SCROLL_HEIGHT=$((SCROLL_HEIGHT-1)) && REFRESH=1 # Top.
     (( CURSOR_POS > H )) && SCROLL_HEIGHT=$((SCROLL_HEIGHT+((CURSOR_POS-H)))) && CURSOR_POS=$H && REFRESH=1 # Bottom.
     (( CURSOR_POS > ((NUM_FILES)) )) && CURSOR_POS="$((NUM_FILES))" # Last file.
-    (( SCROLL_HEIGHT > ((NUM_FILES-H)) )) && SCROLL_HEIGHT="$((NUM_FILES-H))"
+    (( SCROLL_HEIGHT > ((NUM_FILES-H)) )) && SCROLL_HEIGHT="$((NUM_FILES-H))" # Pull screen down.
     (( SCROLL_HEIGHT < 1 )) && SCROLL_HEIGHT=1
     # Draw the diplay:
     [ "$REFRESH" = "1" ] &&
@@ -59,6 +59,10 @@ while (true) do
     REFRESH=0
     # Get user input:
     read -rsn 1 INPUT
+    # Search with '/' key:
+    [ "$INPUT" = '/' ] && read -rsn 1 INPUT &&
+        CURSOR_POS="$(grep -n "^${INPUT}" <<< "$SORTED_NAMES" | cut -d ':' -f 1 | head -n 1)" &&
+        CURSOR_POS=$((CURSOR_POS+1)) && INPUT=""
     # Convert arrow key escape codes into hjkl form:
     [ "$INPUT" = "$(printf "\033")" ] && read -rsn 1 INPUT && [ "$INPUT" = "[" ] && read -rsn 1 INPUT
     [ "$INPUT" = "D" ] && INPUT="h"
