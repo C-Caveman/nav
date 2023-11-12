@@ -1,10 +1,11 @@
 nav - A terminal-based file navigator/viewer.
 
 Invoked with:
-    source /path_to_nav/nav
+    /path/to/nav_script && cd "$(cat /tmp/nav_dir.txt)"
 
 Installation:
-    Add this alias to your ~/.bash_aliases file: alias f='source /path_to_nav/nav'
+    Add an alias for nav to your ~/.bash_aliases file:
+        alias f='/path/to/this_script && cd "$(cat /tmp/nav_dir.txt)"'
 
 Controls:
     h : Go up a dir.
