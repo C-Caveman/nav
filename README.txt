@@ -8,7 +8,6 @@ Installation:
         alias f='/path/to/this_script && cd "$(cat /tmp/nav_dir.txt)"'
 
 Controls:
-    h : Go up a dir.
-    j : Scroll down.
-    k : Scroll up.
-    l : Enter a dir.
+    <hjkl> or <arrow keys> to navigate through the file system.
+    <q> to quit.
+    </> to jump to a filename starting with the next pressed letter.
