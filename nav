@@ -13,7 +13,7 @@ NAMES="\
 <@private files@>\n$(find -L . -maxdepth 1 -type f | sed 's/^\.\///' | grep '^\.' | sort)\n<@end@>
 "
 FORMATTED_NAMES="$(
-printf "$NAMES" | # Set color-coding for each tagged group of names:
+printf "$NAMES" | cut -c "1-$((W-1))" | # Set color-coding for each tagged group of names:
     sed '
         /^\s*$/d;
         /<@public dirs@>/,/<@end@>/s/^/\\033[93m\//
@@ -30,14 +30,14 @@ SORTED_NAMES="$(printf "$NAMES" | sed '/^\s*$/d; /^<@.*@>$/d')"
 REFRESH=1
 CURSOR_POS=2
 SCROLL_HEIGHT=1
-update_names
+W="$(tput cols)" && update_names
 # Hide user input:
 stty -echo
 # Navigation loop:
 while (true) do
     # Get the terminal dimensions: (so we don't over-fill the screen)
-    W="$(tput cols)"
-    H="$(tput lines)"
+    PREV_W="$W" && W="$(tput cols)" && [ ! "$PREV_W" = "$W" ] && update_names
+    PREV_H="$H" && H="$(tput lines)" && [ ! "$PREV_H" = "$H" ] && REFRESH=1
     NUM_FILES="$(echo "$FORMATTED_NAMES" | wc -l)"
     NUM_FILES="$((NUM_FILES+1))"
     # Keep the cursor in bounds:
@@ -50,7 +50,7 @@ while (true) do
     [ "$REFRESH" = "1" ] &&
         clear &&
         # Print the current directory: (formatted to be yellow)
-        printf "\033[93m$PWD\033[0m\n" &&
+        printf "\033[93m$(echo "$PWD" | cut -c "1-$((W))")\033[0m\n" &&
         # Print the file names: (with leading space)
         printf "$(printf "$FORMATTED_NAMES" | sed 's/^/ /' | sed -n ' '"$SCROLL_HEIGHT"','"$((H+SCROLL_HEIGHT-2))"'p')"
     # Move the cursor:
