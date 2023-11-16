@@ -16,8 +16,8 @@ FORMATTED_NAMES="$(
 printf "$NAMES" | # Set color-coding for each tagged group of names:
     sed '
         /^\s*$/d;
-        /<@public dirs@>/,/<@end@>/s/^/\\033[93m/
-        /<@private dirs@>/,/<@end@>/s/^/\\033[91m/
+        /<@public dirs@>/,/<@end@>/s/^/\\033[93m\//
+        /<@private dirs@>/,/<@end@>/s/^/\\033[91m\//
         /<@public files@>/,/<@end@>/s/^/\\033[37m/
         /<@private files@>/,/<@end@>/s/^/\\033[32m/
         /<@.*@>/d
