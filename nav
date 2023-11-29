@@ -7,10 +7,10 @@
 
 update_names() { # Sort the filenames and group them using html-like tags:
 NAMES="\
-<@public dirs@>\n$(find -L . -maxdepth 1 -type d | sed 's/^\.\///' | grep -v '^\.' | sort)\n<@end@>
-<@private dirs@>\n$(find -L . -maxdepth 1 -type d | sed 's/^\.\///' | grep '^\.' | grep -v '^.$' | sort)\n<@end@>
-<@public files@>\n$(find -L . -maxdepth 1 -type f | sed 's/^\.\///' | grep -v '^\.' | sort)\n<@end@>
-<@private files@>\n$(find -L . -maxdepth 1 -type f | sed 's/^\.\///' | grep '^\.' | sort)\n<@end@>
+<@public dirs@>\n$(find -L . -maxdepth 1 -type d | sed 's/^\.\///' | grep -v '^\.' | sort -f)\n<@end@>
+<@private dirs@>\n$(find -L . -maxdepth 1 -type d | sed 's/^\.\///' | grep '^\.' | grep -v '^.$' | sort -f)\n<@end@>
+<@public files@>\n$(find -L . -maxdepth 1 -type f | sed 's/^\.\///' | grep -v '^\.' | sort -f)\n<@end@>
+<@private files@>\n$(find -L . -maxdepth 1 -type f | sed 's/^\.\///' | grep '^\.' | sort -f)\n<@end@>
 "
 FORMATTED_NAMES="$(
 printf "$NAMES" | cut -c "1-$((W-1))" | # Set color-coding for each tagged group of names:
