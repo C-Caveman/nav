@@ -28,8 +28,8 @@ SORTED_NAMES="$(printf "$NAMES" | sed '/^\s*$/d; /^<@.*@>$/d')"
 }
 
 REFRESH=1
-CURSOR_POS=2
-SCROLL_HEIGHT=1
+CURSOR_POS=0
+SCROLL_HEIGHT=0
 W="$(tput cols)" && update_names
 # Hide user input:
 stty -echo
@@ -39,55 +39,51 @@ while (true) do
     PREV_W="$W" && W="$(tput cols)" && [ ! "$PREV_W" = "$W" ] && update_names
     PREV_H="$H" && H="$(tput lines)" && [ ! "$PREV_H" = "$H" ] && REFRESH=1
     NUM_FILES="$(echo "$FORMATTED_NAMES" | wc -l)"
-    NUM_FILES="$((NUM_FILES+1))"
     # Keep the cursor in bounds:
-    [ $CURSOR_POS -lt 2 ] && CURSOR_POS=2 && SCROLL_HEIGHT=$((SCROLL_HEIGHT-1)) && REFRESH=1 # Top.
-    [ $CURSOR_POS -gt $H ] && SCROLL_HEIGHT=$((SCROLL_HEIGHT+((CURSOR_POS-H)))) && CURSOR_POS=$H && REFRESH=1 # Bottom.
-    [ $CURSOR_POS -gt $NUM_FILES ] && CURSOR_POS="$NUM_FILES" # Last file.
-    [ $SCROLL_HEIGHT -gt $((NUM_FILES-H)) ] && SCROLL_HEIGHT="$((NUM_FILES-H))" # Pull screen down.
-    [ $SCROLL_HEIGHT -lt 1 ] && SCROLL_HEIGHT=1
-    # Draw the diplay:
+    #REFRESH=1
+    [ $CURSOR_POS -lt 0 ] && CURSOR_POS=0                                            # First file.
+    [ $CURSOR_POS -gt $NUM_FILES ] && CURSOR_POS=$NUM_FILES                          # Last file.
+    [ $CURSOR_POS -lt $((SCROLL_HEIGHT)) ] && SCROLL_HEIGHT=$CURSOR_POS && REFRESH=1 # First displayed line:
+    [ $CURSOR_POS -gt $((SCROLL_HEIGHT + H - 2)) ] &&                                # Last displayed line:
+        SCROLL_HEIGHT=$((CURSOR_POS-H+2)) && REFRESH=1
+    [ $SCROLL_HEIGHT -lt 0 ] && SCROLL_HEIGHT=0 && REFRESH=1
+    # Draw the diplay: ===============================================================================
     [ "$REFRESH" = "1" ] &&
         clear &&
         # Print the current directory: (formatted to be yellow)
         printf "\033[93m$(echo "$PWD" | cut -c "1-$((W))")\033[0m\n" &&
         # Print the file names: (with leading space)
-        printf "$(printf "$FORMATTED_NAMES" | sed 's/^/ /' | sed -n ' '"$SCROLL_HEIGHT"','"$((H+SCROLL_HEIGHT-2))"'p')"
+        printf "$(printf "$FORMATTED_NAMES" | sed 's/^/ /' | sed -n ' '"$((SCROLL_HEIGHT+1))"','"$((H+SCROLL_HEIGHT-1))"'p')"
     # Move the cursor:
-    printf "\033[$CURSOR_POS;0H"
+    printf "\033[$((CURSOR_POS+2-SCROLL_HEIGHT));0H"
     # Don't refresh screen unless needed:
     REFRESH=0
-    # Get user input:
+    # Get user input: ================================================================================
     read -rsn 1 INPUT
     # Search with '/' key:
     [ "$INPUT" = '/' ] && read -rsn 1 INPUT &&
         CURSOR_POS="$(printf "$SORTED_NAMES" | grep -n "^${INPUT}" | cut -d ':' -f 1 | head -n 1)" &&
-        CURSOR_POS=$((CURSOR_POS+1)) && INPUT=""
+        CURSOR_POS=$((CURSOR_POS-1)) && INPUT="" && REFRESH=1
     # Convert arrow key escape codes into hjkl form:
     [ "$INPUT" = "$(printf "\033")" ] && read -rsn 1 INPUT && [ "$INPUT" = "[" ] && read -rsn 1 INPUT
-    [ "$INPUT" = "D" ] && INPUT="h"
-    [ "$INPUT" = "C" ] && INPUT="l"
-    [ "$INPUT" = "A" ] && INPUT="k"
-    [ "$INPUT" = "B" ] && INPUT="j"
+    [ "$INPUT" = "D" ] && INPUT="h"; [ "$INPUT" = "C" ] && INPUT="l" # Left and right.
+    [ "$INPUT" = "A" ] && INPUT="k"; [ "$INPUT" = "B" ] && INPUT="j" # Up and down.
     # Quit:
     [ "$INPUT" = "q" ] && break
     # Goto ..:
     [ "$INPUT" = "h" ] &&
         PREV_FNAME="${PWD##*/}" && # Get the name of the current dir.
-        cd ".." &&
-        REFRESH=1 &&
-        update_names &&
-        CURSOR_POS="$(printf "$SORTED_NAMES" | grep -n "^$PREV_FNAME\$" | cut -d ':' -f 1)" &&
-        CURSOR_POS="$((CURSOR_POS+1))" # Set cursor on dir we just came from.
+        cd ".." && REFRESH=1 && update_names && # Set cursor on dir we just came from.
+        CURSOR_POS="$(printf "$SORTED_NAMES" | grep -n "^$PREV_FNAME\$" | cut -d ':' -f 1)" && CURSOR_POS="$((CURSOR_POS-1))"
     # Goto dir:
     [ "$INPUT" = "l" ] &&
-        cd "$(echo "$SORTED_NAMES" | tr '\n' '\t' | cut -f "$((CURSOR_POS+SCROLL_HEIGHT-2))")" &&
+        cd "$(echo "$SORTED_NAMES" | tr '\n' '\t' | cut -f "$((CURSOR_POS+SCROLL_HEIGHT+1))")" &&
         REFRESH=1 &&
         update_names
     # Up:
-    [ "$INPUT" = "k" ] && CURSOR_POS=$((CURSOR_POS-1))
+    [ "$INPUT" = "k" ] && [ ! "$CURSOR_POS" = "0" ] && CURSOR_POS=$((CURSOR_POS-1))
     # Down:
-    [ "$INPUT" = "j" ] && CURSOR_POS=$((CURSOR_POS+1))
+    [ "$INPUT" = "j" ] && [ ! "$CURSOR_POS" -gt "$NUM_FILES" ] && CURSOR_POS=$((CURSOR_POS+1))
 done
 # Clear formatting, move cursor to bottom of the terminal.
 N="$(echo "$SORTED_NAMES" | wc -l)"
