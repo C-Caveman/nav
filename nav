@@ -77,7 +77,7 @@ while (true) do
         CURSOR_POS="$(printf "$SORTED_NAMES" | grep -n "^$PREV_FNAME\$" | cut -d ':' -f 1)" && CURSOR_POS="$((CURSOR_POS-1))"
     # Goto dir:
     [ "$INPUT" = "l" ] &&
-        cd "$(echo "$SORTED_NAMES" | tr '\n' '\t' | cut -f "$((CURSOR_POS+SCROLL_HEIGHT+1))")" &&
+        cd "$(echo "$SORTED_NAMES" | tr '\n' '\t' | cut -f "$((CURSOR_POS+1))")" &&
         REFRESH=1 &&
         update_names
     # Up:
