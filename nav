@@ -78,6 +78,8 @@ while (true) do
     # Goto dir:
     [ "$INPUT" = "l" ] &&
         cd "$(echo "$SORTED_NAMES" | tr '\n' '\t' | cut -f "$((CURSOR_POS+1))")" &&
+        SCROLL_HEIGHT=0 &&
+        CURSOR_POS=0 &&
         REFRESH=1 &&
         update_names
     # Up:
