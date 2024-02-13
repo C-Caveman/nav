@@ -36,7 +36,7 @@ stty -echo
 # Navigation loop:
 while (true) do
     # Get the terminal dimensions: (so we don't over-fill the screen)
-    PREV_W="$W" && W="$(tput cols)" && [ ! "$PREV_W" = "$W" ] && update_names
+    PREV_W="$W" && W="$(($(tput cols) - 2))" && [ ! "$PREV_W" = "$W" ] && update_names
     PREV_H="$H" && H="$(tput lines)" && [ ! "$PREV_H" = "$H" ] && REFRESH=1
     NUM_FILES="$(echo "$FORMATTED_NAMES" | wc -l)"
     # Keep the cursor in bounds:
